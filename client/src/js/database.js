@@ -15,7 +15,6 @@ const initdb = async () =>
 
 // TODO: Add logic to a method that accepts some content and adds it to the database
 export const putDb = async (content) => {
-  console.log('Update DB');
     const db = await openDB('jate', 1);
     const tx = db.transaction('jate', 'readwrite');
     const store = tx.objectStore('jate');
@@ -31,15 +30,26 @@ export const putDb = async (content) => {
 
 // TODO: Add logic for a method that gets all the content from the database
 export const getDb = async () => {
-  console.log('Content Obtained!')
+  try {
+
     const db = await openDB('jate', 1);
     const tx = db.transaction('jate', 'readonly');
     const store = tx.objectStore('jate');
 
     const request = store.getAll();
     const result = await request
-    console.log('result.value', result);
+
+    // Check if result is empty
+    if (result.length === 0 || !result[0].content) {
+      console.warn('No valid content found in IndexedDB.');
+      return; // Exit early or handle the case where no valid content is found
+    }
+
     return result;
+  } catch (error) {
+    console.error('Error retrieving content from IndexedDB:', error);
+    throw error; 
+  }
 };
 
 
