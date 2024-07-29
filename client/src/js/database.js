@@ -39,10 +39,10 @@ export const getDb = async () => {
     const request = store.getAll();
     const result = await request
 
-    // Check if result is empty
+    // checks if result is empty
     if (result.length === 0 || !result[0].content) {
       console.warn('No valid content found in IndexedDB.');
-      return; // Exit early or handle the case where no valid content is found
+      return; 
     }
 
     return result;

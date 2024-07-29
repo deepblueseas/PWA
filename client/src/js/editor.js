@@ -1,18 +1,34 @@
-// Import methods to save and get data from the indexedDB database in './database.js'
 import { getDb, putDb } from './database';
 import { header } from './header';
 
-export default class {
+export default class App {
   constructor() {
-    const localData = localStorage.getItem('content');
+    this.editor = null; // Initialize editor property
 
-    // check if CodeMirror is loaded
+    this.initEditor(); // Initialize CodeMirror editor
+
+    // Load editor content after initialization
+    this.loadEditorContent();
+
+    // Save content to localStorage on change
+    this.editor.on('change', () => {
+      localStorage.setItem('content', this.editor.getValue());
+    });
+
+    // Save content to IndexedDB on blur
+    this.editor.on('blur', () => {
+      console.log('The editor has lost focus');
+      putDb(this.editor.getValue());
+    });
+  }
+
+  initEditor() {
     if (typeof CodeMirror === 'undefined') {
       throw new Error('CodeMirror is not loaded');
     }
 
     this.editor = CodeMirror(document.querySelector('#main'), {
-      value: '',
+      value: '', // Initialize with empty value
       mode: 'javascript',
       theme: 'monokai',
       lineNumbers: true,
@@ -21,41 +37,6 @@ export default class {
       indentUnit: 2,
       tabSize: 2,
     });
-
-
-  
-
-
-    // When the editor is ready, set the value to whatever is stored in indexeddb.
-    // Fall back to localStorage if nothing is stored in indexeddb, and if neither is available, set the value to header.
-//     getDb().then((data) => {
-//       console.info('Loaded data from IndexedDB, injecting into editor');
-//       this.editor.setValue(data || localData || header);
-//     });
-
-//     this.editor.on('change', () => {
-//       localStorage.setItem('content', this.editor.getValue());
-//     });
-
-//     // Save the content of the editor when the editor itself is loses focus
-//     this.editor.on('blur', () => {
-//       console.log('The editor has lost focus');
-//       putDb(localStorage.getItem('content'));
-//     });
-//   }
-// }
-
-
-this.loadEditorContent();
-
-    this.editor.on('change', () => {
-      localStorage.setItem('content', this.editor.getValue());
-    });
-
-    this.editor.on('blur', () => {
-      console.log('The editor has lost focus');
-      putDb(localStorage.getItem('content'));
-    });
   }
 
   async loadEditorContent() {
@@ -63,22 +44,19 @@ this.loadEditorContent();
       const data = await getDb();
       console.info('Loaded data from IndexedDB:', data);
 
-      // Check if data is empty or not in the expected format
-      if (!data || (Array.isArray(data) && data.length === 0)) {
+      if (!data || data.length === 0 || !data[0].content) {
         throw new Error('No valid content found in IndexedDB.');
       }
 
-      // Example: Assume data is an array of objects with a 'content' property
+      // Join content entries with new lines and set in CodeMirror
       const content = data.map(entry => entry.content).join('\n');
-
-      // Set the editor value
-      this.editor.setValue(content || localStorage.getItem('content') || header);
+      this.editor.setValue(content);
     } catch (error) {
       console.error('Error loading content:', error);
 
       // Fallback to localStorage or header if IndexedDB fails or returns unexpected data
-      const content = localStorage.getItem('content') || header;
-      this.editor.setValue(content);
+      const fallbackContent = localStorage.getItem('content') || header;
+      this.editor.setValue(fallbackContent);
     }
   }
 }
