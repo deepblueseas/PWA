@@ -8,7 +8,7 @@
 ## Table of Contents
 I. [Acceptance Criteria](#acceptance-criteria) <br>
 II. [Image of Working App](#example-of-working-application) <br>
-III. [RENDER](#link-to-render)
+III. [RENDER](#link-to-render) <br>
 IV. [Starter Code Credit](#starter-code-credit-httpsgithubcomcoding-boot-campcautious-meme)
 
 
